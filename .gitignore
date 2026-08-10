@@ -155,3 +155,10 @@ coverage
 *.pem
 .env.local
 .env.*.local
+
+
+# Python virtual environment
+venv/
+.venv/
+__pycache__/
+*.pyc

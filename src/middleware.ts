@@ -23,29 +23,32 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const isAuthenticated = token ? await verifyAuth(token) : false;
 
-  // Root path
-  if (request.nextUrl.pathname === "/") {
-    // Not authenticated - redirect to auth
-    if (!isAuthenticated) {
-      return NextResponse.redirect(new URL("/auth", request.url));
-    }
-    // Authenticated - allow access to landing page
-    return NextResponse.next();
-  }
-
-  // Auth page
+  // Allow /auth for unauthenticated users
   if (request.nextUrl.pathname === "/auth") {
-    // Already authenticated - redirect to landing page
     if (isAuthenticated) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    // Not authenticated - allow access to auth page
     return NextResponse.next();
+  }
+
+  // Protect all other routes
+  if (!isAuthenticated) {
+    return NextResponse.redirect(new URL("/auth", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/", "/auth"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+  ],
 };
