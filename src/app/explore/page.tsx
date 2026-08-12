@@ -1,99 +1,40 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCityTrends, type CityTrendsResult } from "@/lib/actions/market";
-import { getTopCitiesForCountry } from "@/lib/geography";
-import type { ScrapedJob, ScrapedArticle } from "@/lib/types";
+import { getCountryTrends } from "@/actions/market";
+import type { CountryTrendPayload } from "@/types/market";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Demand badge colours
+// Demand badge colour config
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DEMAND_CONFIG = {
   High: {
-    label: "High",
     bg: "rgba(16,185,129,0.15)",
     border: "rgba(16,185,129,0.4)",
     text: "#10b981",
     dot: "#10b981",
   },
   Moderate: {
-    label: "Moderate",
     bg: "rgba(245,158,11,0.15)",
     border: "rgba(245,158,11,0.4)",
     text: "#f59e0b",
     dot: "#f59e0b",
   },
   Low: {
-    label: "Low",
     bg: "rgba(239,68,68,0.12)",
     border: "rgba(239,68,68,0.35)",
     text: "#ef4444",
     dot: "#ef4444",
   },
-} satisfies Record<string, { label: string; bg: string; border: string; text: string; dot: string }>;
+} as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-function LiveScrapeBadge({ fromCache }: { fromCache: boolean }) {
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "4px 12px",
-        borderRadius: 999,
-        background: fromCache
-          ? "rgba(59,130,246,0.12)"
-          : "rgba(6,182,212,0.12)",
-        border: `1px solid ${fromCache ? "rgba(59,130,246,0.3)" : "rgba(6,182,212,0.3)"}`,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: "0.05em",
-        color: fromCache ? "#3b82f6" : "#06b6d4",
-        textTransform: "uppercase",
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: fromCache ? "#3b82f6" : "#06b6d4",
-          animation: fromCache ? "none" : "pulse-dot 2s ease-in-out infinite",
-          flexShrink: 0,
-        }}
-      />
-      {fromCache ? "Cached · Neon DB" : "Live-Scraped · Not AI Generated"}
-    </div>
-  );
-}
-
-function StackSkeleton() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            height: 72,
-            borderRadius: 12,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            animation: "shimmer 2s infinite",
-            opacity: 1 - i * 0.12,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function DemandBadge({ score }: { score: ScrapedJob["demandScore"] }) {
+function DemandBadge({ score }: { score: "High" | "Moderate" | "Low" }) {
   const cfg = DEMAND_CONFIG[score];
   return (
     <span
@@ -120,161 +61,53 @@ function DemandBadge({ score }: { score: ScrapedJob["demandScore"] }) {
           flexShrink: 0,
         }}
       />
-      {cfg.label}
+      {score}
     </span>
   );
 }
 
-function StackCard({ job, rank, maxOpenings }: { job: ScrapedJob; rank: number; maxOpenings: number }) {
-  const barPct = maxOpenings > 0 ? (job.openings / maxOpenings) * 100 : 0;
-  const cfg = DEMAND_CONFIG[job.demandScore];
-
+function SkeletonCard() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: rank * 0.07 }}
+    <div
       style={{
-        padding: "16px 20px",
+        height: 76,
         borderRadius: 14,
-        background: "rgba(255,255,255,0.025)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        transition: "border-color 0.2s, box-shadow 0.2s",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        animation: "shimmer 2s infinite",
       }}
-      whileHover={{
-        borderColor: "rgba(255,255,255,0.15)",
-        boxShadow: `0 4px 20px ${cfg.bg}`,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 6,
-              background: "rgba(255,255,255,0.06)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 10,
-              fontWeight: 700,
-              color: "rgba(255,255,255,0.4)",
-              flexShrink: 0,
-            }}
-          >
-            {rank + 1}
-          </span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#fafafa" }}>
-            {job.tech}
-          </span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontVariantNumeric: "tabular-nums" }}>
-            ~{job.openings.toLocaleString()} openings
-          </span>
-          <DemandBadge score={job.demandScore} />
-        </div>
-      </div>
-
-      {/* Demand bar */}
-      <div
-        style={{
-          height: 4,
-          borderRadius: 2,
-          background: "rgba(255,255,255,0.06)",
-          overflow: "hidden",
-        }}
-      >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${barPct}%` }}
-          transition={{ duration: 0.6, delay: rank * 0.07 + 0.2, ease: "easeOut" }}
-          style={{
-            height: "100%",
-            borderRadius: 2,
-            background: `linear-gradient(90deg, ${cfg.dot}, ${cfg.text})`,
-          }}
-        />
-      </div>
-    </motion.div>
+    />
   );
 }
 
-function ArticleCard({ article, index }: { article: ScrapedArticle; index: number }) {
+function SkeletonSection({ title }: { title: string }) {
   return (
-    <motion.a
-      href={article.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.06 }}
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 12,
-        padding: "12px 16px",
-        borderRadius: 10,
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        textDecoration: "none",
-        transition: "all 0.2s",
-      }}
-      whileHover={{
-        background: "rgba(255,255,255,0.04)",
-        borderColor: "rgba(255,255,255,0.12)",
-      }}
-    >
+    <div>
       <div
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 7,
-          background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          fontSize: 12,
-          fontWeight: 700,
-          color: "#fff",
+          height: 14,
+          width: 140,
+          borderRadius: 6,
+          background: "rgba(255,255,255,0.05)",
+          marginBottom: 14,
+          animation: "shimmer 2s infinite",
         }}
+      />
+      <p
+        style={{
+          margin: "0 0 14px",
+          fontSize: 12,
+          color: "rgba(255,255,255,0.2)",
+      }}
       >
-        D
+        {title}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {[...Array(3)].map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
-      <div style={{ minWidth: 0 }}>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#e4e4e7",
-            lineHeight: 1.45,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          {article.title}
-        </p>
-        <span
-          style={{
-            fontSize: 11,
-            color: "rgba(255,255,255,0.35)",
-            marginTop: 3,
-            display: "block",
-          }}
-        >
-          {article.source}
-        </span>
-      </div>
-    </motion.a>
+    </div>
   );
 }
 
@@ -283,58 +116,90 @@ function ArticleCard({ article, index }: { article: ScrapedArticle; index: numbe
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ExplorePage() {
-  const [countryQuery, setCountryQuery] = useState("India");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [trendsResult, setTrendsResult] = useState<CityTrendsResult | null>(null);
+  const [query, setQuery] = useState("India");
+  const [submitted, setSubmitted] = useState("India");
+  const [data, setData] = useState<CountryTrendPayload | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
-  // Derive city list from the current query instantly (static, no async)
-  const { countryName, cities } = getTopCitiesForCountry(countryQuery);
+  // ── Fetch on submitted change ─────────────────────────────────────────────
+  useEffect(() => {
+    if (!submitted.trim()) return;
 
-  const handleCitySelect = useCallback(
-    (city: string) => {
-      setSelectedCity(city);
-      setTrendsResult(null);
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
       setError(null);
-
-      startTransition(async () => {
-        try {
-          const result = await getCityTrends(city);
-          setTrendsResult(result);
-        } catch (err) {
-          console.error("[explore] getCityTrends error:", err);
+      try {
+        const result = await getCountryTrends(submitted.trim());
+        if (!cancelled) {
+          if (result === null) {
+            setError("No data returned. Please try a different country name.");
+          } else {
+            setData(result);
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[explore] getCountryTrends error:", err);
           setError("Failed to load market data. Please try again.");
         }
-      });
-    },
-    [],
-  );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
 
-  const maxOpenings =
-    trendsResult
-      ? Math.max(...trendsResult.jobData.map((j) => j.openings), 1)
-      : 1;
+    return () => {
+      cancelled = true;
+    };
+  }, [submitted]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleSearch = () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    setData(null);
+    setSubmitted(trimmed);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
+  };
+
+  const maxOpenings = data ? Math.max(...data.topTechs.map((t) => t.openings), 1) : 1;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div
       style={{
         minHeight: "100vh",
+        position: "relative",
         background: "linear-gradient(135deg, #000000 0%, #09090b 50%, #000000 100%)",
         color: "#fafafa",
         fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
       }}
     >
-      {/* Ambient background glows */}
+      {/* Global keyframe animations */}
+      <style>{`
+        @keyframes shimmer {
+          0%   { opacity: 0.5; }
+          50%  { opacity: 1;   }
+          100% { opacity: 0.5; }
+        }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1;   transform: scale(1);    }
+          50%       { opacity: 0.5; transform: scale(1.4);  }
+        }
+      `}</style>
+
+      {/* Ambient glows */}
       <div
         aria-hidden
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 0,
-          overflow: "hidden",
-        }}
+        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
       >
         <div
           style={{
@@ -367,7 +232,7 @@ export default function ExplorePage() {
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          style={{ marginBottom: 48 }}
+          style={{ marginBottom: 40 }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span
@@ -385,7 +250,38 @@ export default function ExplorePage() {
             >
               Market Intelligence
             </span>
+            {/* Live data badge */}
+            <span
+              id="live-data-badge"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "3px 10px",
+                borderRadius: 999,
+                background: "rgba(6,182,212,0.08)",
+                border: "1px solid rgba(6,182,212,0.2)",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.05em",
+                color: "rgba(6,182,212,0.8)",
+                textTransform: "uppercase",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#06b6d4",
+                  animation: "pulse-dot 2s ease-in-out infinite",
+                  flexShrink: 0,
+                }}
+              />
+              Live data — sourced from web signals, not AI-generated
+            </span>
           </div>
+
           <h1
             style={{
               fontSize: "clamp(28px, 5vw, 48px)",
@@ -402,399 +298,480 @@ export default function ExplorePage() {
             Explore Tech Demand
           </h1>
           <p style={{ margin: "10px 0 0", fontSize: 16, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-            Pick a country → choose a city → see which stacks are hiring right now.
+            Enter any country to see its top tech stacks, hiring cities, and related articles.
             <br />
             Data is live-scraped from job search engines — no AI hallucinations.
           </p>
         </motion.div>
 
-        {/* ── Two-column layout ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
-
-          {/* LEFT: Country search + city grid */}
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+        {/* ── Search bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          style={{
+            display: "flex",
+            gap: 12,
+            marginBottom: 48,
+            maxWidth: 560,
+          }}
+        >
+          <input
+            id="country-search-input"
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. India, Germany, USA, Japan…"
+            style={{
+              flex: 1,
+              padding: "12px 18px",
+              borderRadius: 12,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fafafa",
+              fontSize: 15,
+              outline: "none",
+              fontFamily: "inherit",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(6,182,212,0.5)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+          />
+          <button
+            id="search-button"
+            onClick={handleSearch}
+            disabled={loading}
+            style={{
+              padding: "12px 24px",
+              borderRadius: 12,
+              background: loading
+                ? "rgba(6,182,212,0.15)"
+                : "linear-gradient(135deg, rgba(6,182,212,0.25), rgba(59,130,246,0.2))",
+              border: "1px solid rgba(6,182,212,0.35)",
+              color: loading ? "rgba(6,182,212,0.5)" : "#06b6d4",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: loading ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              letterSpacing: "0.03em",
+              transition: "all 0.2s",
+              whiteSpace: "nowrap",
+            }}
           >
-            {/* Country search */}
-            <div style={{ marginBottom: 24 }}>
-              <label
-                htmlFor="country-search"
-                style={{
-                  display: "block",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.4)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  marginBottom: 8,
-                }}
-              >
-                Country
-              </label>
-              <input
-                id="country-search"
-                type="text"
-                value={countryQuery}
-                onChange={(e) => {
-                  setCountryQuery(e.target.value);
-                  setSelectedCity(null);
-                  setTrendsResult(null);
-                  setError(null);
-                }}
-                placeholder="e.g. India, USA, UK, Germany…"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#fafafa",
-                  fontSize: 15,
-                  outline: "none",
-                  transition: "border-color 0.2s",
-                  fontFamily: "inherit",
-                }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(6,182,212,0.5)")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
-              />
-            </div>
+            {loading ? "Scraping…" : "Search →"}
+          </button>
+        </motion.div>
 
-            {/* Resolved country name */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={countryName}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.2 }}
-                style={{ marginBottom: 16 }}
-              >
-                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>
-                  Showing cities for{" "}
-                  <span style={{ color: "#06b6d4", fontWeight: 600 }}>{countryName}</span>
-                </p>
-              </motion.div>
-            </AnimatePresence>
+        {/* ── Results area ── */}
+        <AnimatePresence mode="wait">
+          {/* Loading state */}
+          {loading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 32 }}
+            >
+              <SkeletonSection title="Loading tech stacks…" />
+              <SkeletonSection title="Loading top cities…" />
+              <SkeletonSection title="Loading articles…" />
+            </motion.div>
+          )}
 
-            {/* City grid */}
-            <div
+          {/* Error state */}
+          {!loading && error && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 10,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 280,
+                borderRadius: 16,
+                background: "rgba(239,68,68,0.05)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                padding: 40,
+                textAlign: "center",
+                gap: 14,
               }}
             >
-              <AnimatePresence mode="wait">
-                {cities.map((city, i) => {
-                  const isSelected = selectedCity === city;
-                  return (
-                    <motion.button
-                      key={`${countryName}-${city}`}
-                      id={`city-tab-${city.toLowerCase().replace(/\s+/g, "-")}`}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.2, delay: i * 0.04 }}
-                      onClick={() => handleCitySelect(city)}
-                      style={{
-                        padding: "14px 16px",
-                        borderRadius: 12,
-                        background: isSelected
-                          ? "linear-gradient(135deg, rgba(6,182,212,0.2), rgba(59,130,246,0.15))"
-                          : "rgba(255,255,255,0.03)",
-                        border: isSelected
-                          ? "1px solid rgba(6,182,212,0.5)"
-                          : "1px solid rgba(255,255,255,0.07)",
-                        color: isSelected ? "#06b6d4" : "rgba(255,255,255,0.7)",
-                        fontSize: 14,
-                        fontWeight: isSelected ? 700 : 500,
-                        cursor: "pointer",
-                        textAlign: "left",
-                        transition: "all 0.2s",
-                        fontFamily: "inherit",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: isSelected ? "#06b6d4" : "rgba(255,255,255,0.2)",
-                          flexShrink: 0,
-                          transition: "background 0.2s",
-                        }}
-                      />
-                      {city}
-                    </motion.button>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-
-            {/* Hint text */}
-            {!selectedCity && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
+              <div style={{ fontSize: 32 }}>⚠️</div>
+              <p style={{ margin: 0, fontSize: 15, color: "rgba(239,68,68,0.85)", lineHeight: 1.6 }}>{error}</p>
+              <button
+                id="retry-button"
+                onClick={() => {
+                  setData(null);
+                  setError(null);
+                  setSubmitted((s) => s + " "); // force re-trigger
+                  setTimeout(() => setSubmitted(submitted.trim()), 50);
+                }}
                 style={{
-                  marginTop: 20,
-                  fontSize: 12,
-                  color: "rgba(255,255,255,0.25)",
-                  textAlign: "center",
+                  marginTop: 4,
+                  padding: "9px 22px",
+                  borderRadius: 9,
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  color: "#ef4444",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
                 }}
               >
-                ↑ Select a city to fetch live job demand data
-              </motion.p>
-            )}
-          </motion.div>
+                Retry
+              </button>
+            </motion.div>
+          )}
 
-          {/* RIGHT: Results panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
-            <AnimatePresence mode="wait">
-              {!selectedCity ? (
-                // Empty state
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+          {/* Data state */}
+          {!loading && !error && data && (
+            <motion.div
+              key={`data-${data.country}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Country heading */}
+              <div style={{ marginBottom: 36 }}>
+                <h2
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 360,
-                    borderRadius: 16,
-                    background: "rgba(255,255,255,0.015)",
-                    border: "1px dashed rgba(255,255,255,0.08)",
-                    padding: 32,
-                    textAlign: "center",
-                    gap: 12,
+                    margin: "0 0 4px",
+                    fontSize: 28,
+                    fontWeight: 800,
+                    letterSpacing: "-0.02em",
+                    background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
                   }}
                 >
-                  <div style={{ fontSize: 36, opacity: 0.4 }}>🌐</div>
-                  <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-                    Choose a city from the left panel<br />to see live tech-stack demand.
-                  </p>
-                </motion.div>
-              ) : isPending ? (
-                // Loading skeleton
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          height: 20,
-                          width: 120,
-                          borderRadius: 6,
-                          background: "rgba(255,255,255,0.06)",
-                          marginBottom: 8,
-                          animation: "shimmer 2s infinite",
-                        }}
-                      />
-                      <div
-                        style={{
-                          height: 14,
-                          width: 200,
-                          borderRadius: 4,
-                          background: "rgba(255,255,255,0.04)",
-                          animation: "shimmer 2s infinite",
-                        }}
-                      />
-                    </div>
-                    <div
+                  {data.country}
+                </h2>
+                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
+                  Live market intelligence · scraped from DuckDuckGo job signals
+                </p>
+              </div>
+
+              {/* Three-column grid */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                  gap: 32,
+                  alignItems: "start",
+                }}
+              >
+                {/* ── Top Tech Stacks ── */}
+                <section aria-labelledby="tech-stacks-heading">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <span
                       style={{
-                        padding: "4px 14px",
-                        borderRadius: 999,
-                        background: "rgba(6,182,212,0.08)",
-                        border: "1px solid rgba(6,182,212,0.2)",
-                        fontSize: 11,
-                        color: "rgba(6,182,212,0.6)",
-                        fontWeight: 600,
-                        letterSpacing: "0.05em",
+                        width: 3,
+                        height: 16,
+                        borderRadius: 2,
+                        background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+                        display: "inline-block",
+                      }}
+                    />
+                    <h3
+                      id="tech-stacks-heading"
+                      style={{
+                        margin: 0,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,0.6)",
+                        letterSpacing: "0.04em",
                         textTransform: "uppercase",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
                       }}
                     >
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#06b6d4",
-                          animation: "pulse-dot 1s ease-in-out infinite",
-                        }}
-                      />
-                      Scraping…
-                    </div>
+                      Top Tech Stacks
+                    </h3>
                   </div>
-                  <StackSkeleton />
-                </motion.div>
-              ) : error ? (
-                // Error state
-                <motion.div
-                  key="error"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 300,
-                    borderRadius: 16,
-                    background: "rgba(239,68,68,0.05)",
-                    border: "1px solid rgba(239,68,68,0.2)",
-                    padding: 32,
-                    textAlign: "center",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ fontSize: 32 }}>⚠️</div>
-                  <p style={{ margin: 0, fontSize: 14, color: "rgba(239,68,68,0.8)" }}>{error}</p>
-                  <button
-                    onClick={() => selectedCity && handleCitySelect(selectedCity)}
-                    style={{
-                      marginTop: 8,
-                      padding: "8px 20px",
-                      borderRadius: 8,
-                      background: "rgba(239,68,68,0.15)",
-                      border: "1px solid rgba(239,68,68,0.3)",
-                      color: "#ef4444",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    Retry
-                  </button>
-                </motion.div>
-              ) : trendsResult ? (
-                // Results
-                <motion.div
-                  key={`results-${trendsResult.location}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {/* Result header */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: 10,
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div>
-                      <h2
-                        style={{
-                          margin: 0,
-                          fontSize: 22,
-                          fontWeight: 800,
-                          letterSpacing: "-0.02em",
-                          background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}
-                      >
-                        {trendsResult.location}
-                      </h2>
-                      <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-                        Top 5 stacks by estimated openings
-                        {" · "}
-                        Updated {new Date(trendsResult.lastUpdated).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <LiveScrapeBadge fromCache={trendsResult.fromCache} />
-                  </div>
-
-                  {/* Stack cards */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-                    {trendsResult.jobData.map((job, i) => (
-                      <StackCard
-                        key={job.tech}
-                        job={job}
-                        rank={i}
-                        maxOpenings={maxOpenings}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Dev.to articles */}
-                  {trendsResult.articleData.length > 0 && (
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          marginBottom: 14,
-                        }}
-                      >
-                        <span
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {data.topTechs.map((tech, i) => {
+                      const barPct = maxOpenings > 0 ? (tech.openings / maxOpenings) * 100 : 0;
+                      const cfg = DEMAND_CONFIG[tech.demandScore];
+                      return (
+                        <motion.div
+                          key={tech.tech}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: i * 0.07 }}
                           style={{
-                            width: 3,
-                            height: 16,
-                            borderRadius: 2,
-                            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                            display: "inline-block",
-                          }}
-                        />
-                        <h3
-                          style={{
-                            margin: 0,
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "rgba(255,255,255,0.6)",
-                            letterSpacing: "0.04em",
-                            textTransform: "uppercase",
+                            padding: "14px 18px",
+                            borderRadius: 13,
+                            background: "rgba(255,255,255,0.025)",
+                            border: "1px solid rgba(255,255,255,0.07)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 9,
                           }}
                         >
-                          Related Reading · Dev.to
-                        </h3>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {trendsResult.articleData.map((article, i) => (
-                          <ArticleCard key={article.url} article={article} index={i} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </motion.div>
-        </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                              <span
+                                style={{
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: 6,
+                                  background: "rgba(255,255,255,0.06)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  color: "rgba(255,255,255,0.35)",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {i + 1}
+                              </span>
+                              <span style={{ fontSize: 15, fontWeight: 700, color: "#fafafa" }}>{tech.tech}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  color: "rgba(255,255,255,0.45)",
+                                  fontVariantNumeric: "tabular-nums",
+                                }}
+                              >
+                                ~{tech.openings.toLocaleString()} openings
+                              </span>
+                              <DemandBadge score={tech.demandScore} />
+                            </div>
+                          </div>
+                          {/* Demand bar */}
+                          <div
+                            style={{
+                              height: 4,
+                              borderRadius: 2,
+                              background: "rgba(255,255,255,0.06)",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${barPct}%` }}
+                              transition={{ duration: 0.6, delay: i * 0.07 + 0.2, ease: "easeOut" }}
+                              style={{
+                                height: "100%",
+                                borderRadius: 2,
+                                background: `linear-gradient(90deg, ${cfg.dot}, ${cfg.text})`,
+                              }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                    {data.topTechs.length === 0 && (
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                        No tech data found for this country.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                {/* ── Top Cities ── */}
+                <section aria-labelledby="top-cities-heading">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <span
+                      style={{
+                        width: 3,
+                        height: 16,
+                        borderRadius: 2,
+                        background: "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+                        display: "inline-block",
+                      }}
+                    />
+                    <h3
+                      id="top-cities-heading"
+                      style={{
+                        margin: 0,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,0.6)",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Top Tech Cities
+                    </h3>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {data.topCities.map((city, i) => (
+                      <motion.div
+                        key={city.city}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.07 }}
+                        style={{
+                          padding: "14px 18px",
+                          borderRadius: 13,
+                          background: "rgba(255,255,255,0.025)",
+                          border: "1px solid rgba(255,255,255,0.07)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                          <span
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: 6,
+                              background: "rgba(139,92,246,0.12)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "rgba(139,92,246,0.7)",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {i + 1}
+                          </span>
+                          <span style={{ fontSize: 15, fontWeight: 600, color: "#e4e4e7" }}>{city.city}</span>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: "rgba(255,255,255,0.4)",
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          {city.jobVolume.toLocaleString()} signals
+                        </span>
+                      </motion.div>
+                    ))}
+                    {data.topCities.length === 0 && (
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                        No city data found — scraper returned 0 results.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                {/* ── Recent Articles ── */}
+                <section aria-labelledby="articles-heading">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <span
+                      style={{
+                        width: 3,
+                        height: 16,
+                        borderRadius: 2,
+                        background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                        display: "inline-block",
+                      }}
+                    />
+                    <h3
+                      id="articles-heading"
+                      style={{
+                        margin: 0,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,0.6)",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Related Reading · Dev.to
+                    </h3>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                    {data.articleData.map((article, i) => (
+                      <motion.a
+                        key={article.url}
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: i * 0.06 }}
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 12,
+                          padding: "12px 14px",
+                          borderRadius: 10,
+                          background: "rgba(255,255,255,0.02)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                          textDecoration: "none",
+                          transition: "all 0.2s",
+                        }}
+                        whileHover={{
+                          background: "rgba(255,255,255,0.04)",
+                          borderColor: "rgba(255,255,255,0.12)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 7,
+                            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#fff",
+                          }}
+                        >
+                          D
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: "#e4e4e7",
+                              lineHeight: 1.45,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
+                            {article.title}
+                          </p>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: "rgba(255,255,255,0.3)",
+                              marginTop: 3,
+                              display: "block",
+                            }}
+                          >
+                            {article.source}
+                          </span>
+                        </div>
+                      </motion.a>
+                    ))}
+                    {data.articleData.length === 0 && (
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                        No articles found for the top tech stacks.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Footer note ── */}
         <motion.div
@@ -815,8 +792,8 @@ export default function ExplorePage() {
           <span style={{ fontSize: 14 }}>⚡</span>
           <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
             All job demand data is scraped live from DuckDuckGo search results
-            (targeting LinkedIn & Indeed job pages) and cached in Neon PostgreSQL for
-            24 hours. No AI, no LLMs, no paid APIs — fully deterministic pattern-matching.
+            (targeting LinkedIn &amp; Indeed job pages) and cached in Neon PostgreSQL.
+            No AI, no LLMs, no paid APIs — fully deterministic pattern-matching.
           </p>
         </motion.div>
       </div>

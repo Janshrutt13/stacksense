@@ -129,12 +129,12 @@ function HeroDashboard() {
 }
 
 export default function HeroSection({
-  location,
-  setLocation,
-  loading,
-  onAnalyze,
   onCtaClick,
-}: HeroSectionProps) {
+  onExploreClick,
+}: {
+  onCtaClick: () => void;
+  onExploreClick: () => void;
+}) {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-4 pt-28 pb-20">
       {/* Ambient lighting */}
@@ -190,41 +190,15 @@ export default function HeroSection({
               onClick={onCtaClick}
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-colors"
             >
-              Explore My Career Path <ArrowRight className="w-4 h-4" />
+              Build My Career Path <ArrowRight className="w-4 h-4" />
             </MagneticButton>
             <button
-              onClick={() => document.getElementById("market-data")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={onExploreClick}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/[0.1] bg-white/[0.03] text-sm text-zinc-300 hover:bg-white/[0.06] hover:border-white/[0.15] transition-all"
             >
-              View Live Market
+              Explore Live Market Data <Search className="w-4 h-4" />
             </button>
           </motion.div>
-
-          {/* Search bar below hero text */}
-          <motion.form
-            onSubmit={onAnalyze}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex items-center gap-0 w-full max-w-lg mt-8"
-          >
-            <div className="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-l-full border border-white/[0.1] bg-white/[0.03] backdrop-blur-sm">
-              <Search className="w-4 h-4 text-zinc-500 shrink-0" />
-              <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Search your city (e.g., London, Remote)"
-                className="bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none w-full"
-              />
-            </div>
-            <MagneticButton
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-r-full bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-colors disabled:opacity-60 shrink-0"
-            >
-              {loading ? "Analyzing…" : <>Analyze <ArrowRight className="w-4 h-4" /></>}
-            </MagneticButton>
-          </motion.form>
         </div>
 
         {/* Right Column - Dashboard Widget */}

@@ -323,3 +323,96 @@ export async function getAllRegionalTrends(): Promise<MarketTrend[]> {
     return [];
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Country-level market intelligence (new CountryMarketTrend model)
+// ─────────────────────────────────────────────────────────────────────────────
+
+import type { CountryTrendResponse, TechDemand, ArticleItem as CountryArticleItem } from "@/types/market";
+
+/**
+ * Cache-first orchestrator for a **country** (not a city):
+ *  1. Check Neon for an existing CountryMarketTrend row (case-insensitive)
+ *     → return immediately with `fromCache: true`
+ *  2. On miss: scrape all EVALUATION_POOL stacks in parallel via
+ *     DuckDuckGo snippet-density for the country, sort by openings desc, keep top 5.
+ *  3. Fetch Dev.to articles for the top 3 techs in parallel.
+ *  4. Upsert the result into Neon and return with `fromCache: false`.
+ */
+export async function getCountryMarketTrends(
+  countryInput: string,
+): Promise<CountryTrendResponse | null> {
+
+  if (!countryInput?.trim()) return null;
+  const sanitizedCountry = countryInput.trim();
+
+  // ── 1. Neon cache check ──────────────────────────────────────────────────
+  const cached = await db.countryMarketTrend.findFirst({
+    where: { country: { equals: sanitizedCountry, mode: "insensitive" } },
+  });
+
+  if (cached) {
+    console.log(`[market] Country cache hit for "${sanitizedCountry}"`);
+    return {
+      country: cached.country,
+      topTechs: cached.topTechs as unknown as TechDemand[],
+      topCities: cached.topCities as unknown as [],
+      articleData: cached.articleData as unknown as CountryArticleItem[],
+      fromCache: true,
+      lastUpdated: cached.lastUpdated,
+    };
+  }
+
+  // ── 2. Parallel scrape — all stacks simultaneously ───────────────────────
+  console.log(`[market] Country cache miss for "${sanitizedCountry}" — starting parallel scrape`);
+
+  const allJobResults = await Promise.all(
+    EVALUATION_POOL.map((tech: string) =>
+      scrapeJobSignalForTech(tech, sanitizedCountry),
+    ),
+  );
+
+  // Sort by openings descending, keep top 5
+  const top5 = [...allJobResults]
+    .sort((a, b) => b.openings - a.openings)
+    .slice(0, 5) as TechDemand[];
+
+  // ── 3. Dev.to articles for top 3 techs ──────────────────────────────────
+  const topTechNames = top5.slice(0, 3).map((j) => j.tech);
+  const rawArticles = await fetchDevToArticles(topTechNames);
+  const articles: CountryArticleItem[] = rawArticles.map((a) => ({
+    title: a.title,
+    url: a.url,
+    source: a.source,
+  }));
+
+  // ── 4. Upsert into Neon ──────────────────────────────────────────────────
+  const upserted = await db.countryMarketTrend.upsert({
+    where: { country: sanitizedCountry },
+    create: {
+      country: sanitizedCountry,
+      topTechs: JSON.parse(JSON.stringify(top5)),
+      topCities: [],
+      articleData: JSON.parse(JSON.stringify(articles)),
+    },
+    update: {
+      topTechs: JSON.parse(JSON.stringify(top5)),
+      articleData: JSON.parse(JSON.stringify(articles)),
+    },
+  });
+
+  console.log(
+    `[market] Upserted CountryMarketTrend for "${sanitizedCountry}" — ` +
+      `${top5.length} stacks, ${articles.length} articles`,
+  );
+
+  return {
+    country: upserted.country,
+    topTechs: upserted.topTechs as unknown as TechDemand[],
+    topCities: upserted.topCities as unknown as [],
+    articleData: upserted.articleData as unknown as CountryArticleItem[],
+    fromCache: false,
+    lastUpdated: upserted.lastUpdated,
+  };
+}
+

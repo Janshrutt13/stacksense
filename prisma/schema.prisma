@@ -44,6 +44,15 @@ model MarketTrend {
   id          String   @id @default(cuid())
   location    String   @unique
   jobData     Json
-  articleData Json     @default("[]") // <--- Add @default("[]") here
+  articleData Json     @default("[]")
+  lastUpdated DateTime @default(now()) @updatedAt
+}
+
+model CountryMarketTrend {
+  id          String   @id @default(cuid())
+  country     String   @unique
+  topTechs    Json
+  topCities   Json
+  articleData Json
   lastUpdated DateTime @default(now()) @updatedAt
 }

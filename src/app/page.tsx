@@ -1,15 +1,12 @@
 "use client";
 
-import { getMarketIntelligence, type MarketEntry } from "@/lib/actions";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 // Landing page components
 import ScrollProgress from "@/components/landing/ScrollProgress";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import TickerBar from "@/components/landing/TickerBar";
-import MarketResults from "@/components/landing/MarketResults";
 import MarketTicker from "@/components/landing/MarketTicker";
 import TrustSection from "@/components/landing/TrustSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
@@ -24,25 +21,13 @@ import Footer from "@/components/landing/Footer";
 
 export default function HomePage() {
   const router = useRouter();
-  const [location, setLocation] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [marketData, setMarketData] = useState<MarketEntry[] | null>(null);
-
-  async function handleAnalyze(e: React.FormEvent) {
-    e.preventDefault();
-    if (!location.trim()) return;
-    setLoading(true);
-    try {
-      const data = await getMarketIntelligence(location, []);
-      setMarketData(data);
-      document.getElementById("market-results")?.scrollIntoView({ behavior: "smooth" });
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function handleCtaClick() {
     router.push("/auth");
+  }
+
+  function handleExploreClick() {
+    router.push("/explore");
   }
 
   return (
@@ -55,56 +40,44 @@ export default function HomePage() {
 
       {/* A. Hero Section — Split cinematic layout */}
       <HeroSection
-        location={location}
-        setLocation={setLocation}
-        loading={loading}
-        onAnalyze={handleAnalyze}
         onCtaClick={handleCtaClick}
+        onExploreClick={handleExploreClick}
       />
 
       {/* B. Continuous ticker bar */}
       <TickerBar />
 
-      {/* C. Market results (shown after user searches) */}
-      {marketData && (
-        <MarketResults
-          marketData={marketData}
-          location={location}
-          onCtaClick={handleCtaClick}
-        />
-      )}
-
-      {/* D. Live Market Snapshot cards */}
+      {/* C. Live Market Snapshot cards */}
       <MarketTicker />
 
-      {/* E. Trust & Evidence section */}
+      {/* D. Trust & Evidence section */}
       <TrustSection />
 
-      {/* F. Feature Bento Grid */}
+      {/* E. Feature Bento Grid */}
       <FeatureGrid />
 
-      {/* G. How It Works — Scroll-drawn path */}
+      {/* F. How It Works — Scroll-drawn path */}
       <HowItWorks />
 
-      {/* H. StackSense vs. The Rest — Comparison matrix */}
+      {/* G. StackSense vs. The Rest — Comparison matrix */}
       <ComparisonMatrix />
 
-      {/* I. Product Showcase & Roadmap Preview */}
+      {/* H. Product Showcase & Roadmap Preview */}
       <RoadmapPreview />
 
-      {/* J. Stats with animated counters */}
+      {/* I. Stats with animated counters */}
       <StatsSection />
 
-      {/* K. Testimonials */}
+      {/* J. Testimonials */}
       <Testimonials />
 
-      {/* L. FAQ Accordion */}
+      {/* K. FAQ Accordion */}
       <FAQSection />
 
-      {/* M. Massive Footer CTA */}
+      {/* L. Massive Footer CTA */}
       <FooterCTA onCtaClick={handleCtaClick} />
 
-      {/* N. Minimal Footer */}
+      {/* M. Minimal Footer */}
       <Footer />
     </div>
   );
