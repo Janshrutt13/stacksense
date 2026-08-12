@@ -16,7 +16,6 @@ import RoadmapPreview from "@/components/landing/RoadmapPreview";
 import StatsSection from "@/components/landing/StatsSection";
 import Testimonials from "@/components/landing/Testimonials";
 import FAQSection from "@/components/landing/FAQSection";
-import FooterCTA from "@/components/landing/FooterCTA";
 import Footer from "@/components/landing/Footer";
 
 export default function HomePage() {
@@ -40,7 +39,7 @@ export default function HomePage() {
 
       {/* A. Hero Section — Split cinematic layout */}
       <HeroSection
-        onCtaClick={handleCtaClick}
+        onCtaClick={() => router.push("/career-map")}
         onExploreClick={handleExploreClick}
       />
 
@@ -74,8 +73,6 @@ export default function HomePage() {
       {/* K. FAQ Accordion */}
       <FAQSection />
 
-      {/* L. Massive Footer CTA */}
-      <FooterCTA onCtaClick={handleCtaClick} />
 
       {/* M. Minimal Footer */}
       <Footer />

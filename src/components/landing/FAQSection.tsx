@@ -14,10 +14,6 @@ const FAQ_ITEMS = [
     a: "Traditional roadmaps are based on opinions — someone's personal journey or a content creator's preference. StackSense roadmaps are generated from actual hiring demand in your specific market. Every recommendation maps to a real data point.",
   },
   {
-    q: "Can I filter by my specific city?",
-    a: "Yes. StackSense provides city-level hiring intelligence. Demand for technologies varies dramatically between markets — what's hot in San Francisco may be irrelevant in Berlin. We surface these differences so you learn what's actually hiring near you.",
-  },
-  {
     q: "What if I already know some of the technologies?",
     a: "Our Skill Delta Engine calculates only the gap between your current stack and what the market demands. You'll never be told to learn something you already know. The roadmap adapts to your existing experience level.",
   },

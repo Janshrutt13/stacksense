@@ -56,3 +56,15 @@ model CountryMarketTrend {
   articleData Json
   lastUpdated DateTime @default(now()) @updatedAt
 }
+
+model CareerRoadmap {
+  id               String   @id @default(cuid())
+  currentRole      String
+  currentTechStack String[]
+  yearsOfExp       Int
+  targetTechStack  String[]
+  targetRole       String?
+  additionalInfo   String?
+  phases           Json
+  createdAt        DateTime @default(now())
+}
