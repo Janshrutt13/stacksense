@@ -1,132 +1,20 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { Sparkles, ArrowRight, Search, TrendingUp, MapPin } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { ArrowRight, ArrowUpRight, TrendingUp, Wallet } from "lucide-react";
 import MagneticButton from "./MagneticButton";
 
-interface HeroSectionProps {
-  location: string;
-  setLocation: (val: string) => void;
-  loading: boolean;
-  onAnalyze: (e: React.FormEvent) => void;
-  onCtaClick: () => void;
-}
+const bars = [34, 48, 41, 62, 55, 74, 69, 88];
 
-/* Mini sparkline SVG for the hero dashboard widget */
-function MiniSparkline({ color = "#06b6d4" }: { color?: string }) {
-  return (
-    <svg width="80" height="28" viewBox="0 0 80 28" fill="none" className="animate-sparkline">
-      <path
-        d="M2 24 L12 18 L22 20 L32 12 L42 14 L52 8 L62 10 L72 4 L78 6"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M2 24 L12 18 L22 20 L32 12 L42 14 L52 8 L62 10 L72 4 L78 6 L78 28 L2 28Z"
-        fill={`url(#sparkGrad-${color.replace('#', '')})`}
-        opacity="0.15"
-      />
-      <defs>
-        <linearGradient id={`sparkGrad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.4" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
+const techList = [
+  { name: "Next.js", roles: "48,120", demand: 66 },
+  { name: "TypeScript", roles: "61,430", demand: 84 },
+  { name: "React", roles: "72,905", demand: 100 },
+  { name: "PostgreSQL", roles: "34,260", demand: 47 },
+];
 
-/* Interactive Hero Dashboard Widget (right side) */
-function HeroDashboard() {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useSpring(useTransform(mouseY, [-200, 200], [5, -5]), {
-    stiffness: 100,
-    damping: 20,
-  });
-  const rotateY = useSpring(useTransform(mouseX, [-200, 200], [-5, 5]), {
-    stiffness: 100,
-    damping: 20,
-  });
-
-  function handleMouseMove(e: React.MouseEvent) {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left - rect.width / 2);
-    mouseY.set(e.clientY - rect.top - rect.height / 2);
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0);
-    mouseY.set(0);
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformPerspective: 1000 }}
-      className="relative w-full max-w-md"
-    >
-      <div className="rounded-3xl border border-white/[0.08] bg-[#09090b] p-5 space-y-4 shadow-2xl shadow-black/40">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-zinc-400 font-medium">Live Hiring Trends</span>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/[0.08] bg-white/[0.03]">
-            <MapPin className="w-3 h-3 text-cyan-400" />
-            <span className="text-[10px] text-zinc-400">San Francisco / Remote</span>
-          </div>
-        </div>
-
-        {/* Trend Rows */}
-        {[
-          { name: "Next.js", growth: "+34%", salary: "$152k", roles: "8,420", color: "#06b6d4" },
-          { name: "TypeScript", growth: "+28%", salary: "$148k", roles: "12,100", color: "#3b82f6" },
-          { name: "PostgreSQL", growth: "+22%", salary: "$145k", roles: "6,800", color: "#06b6d4" },
-        ].map((item) => (
-          <div
-            key={item.name}
-            className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-white/[0.06] bg-[#18181b]"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-sm font-medium text-white">{item.name}</span>
-                <span className="text-xs text-emerald-400 font-medium">{item.growth}</span>
-              </div>
-              <div className="flex items-center gap-3 text-[10px] text-zinc-500">
-                <span>Avg. {item.salary}</span>
-                <span>·</span>
-                <span>{item.roles} roles</span>
-              </div>
-            </div>
-            <MiniSparkline color={item.color} />
-          </div>
-        ))}
-
-        {/* Skill Gap Badge */}
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.04]">
-          <TrendingUp className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-          <span className="text-xs text-zinc-300">
-            React → <span className="text-cyan-400 font-medium">Fullstack Next.js + Fastify + PostgreSQL</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Ambient glow behind widget */}
-      <div className="absolute -inset-4 -z-10 rounded-3xl bg-cyan-500/[0.04] blur-3xl" />
-    </motion.div>
-  );
-}
+const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function HeroSection({
   onCtaClick,
@@ -135,69 +23,179 @@ export default function HeroSection({
   onCtaClick: () => void;
   onExploreClick: () => void;
 }) {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 pt-28 pb-20">
-      {/* Ambient lighting */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] rounded-full bg-cyan-500/[0.04] blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[100px]" />
-      </div>
+  const wrap = useRef<HTMLElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 90, damping: 20 });
+  const sy = useSpring(my, { stiffness: 90, damping: 20 });
 
-      <div className="relative z-10 max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Left Column - Text */}
+  const tiltX = useTransform(sy, [-0.5, 0.5], [8, -8]);
+  const tiltY = useTransform(sx, [-0.5, 0.5], [-10, 10]);
+  const floatX = useTransform(sx, [-0.5, 0.5], [-18, 18]);
+  const floatY = useTransform(sy, [-0.5, 0.5], [-12, 12]);
+
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const onMove = (e: MouseEvent) => {
+      const r = el.getBoundingClientRect();
+      mx.set((e.clientX - r.left) / r.width - 0.5);
+      my.set((e.clientY - r.top) / r.height - 0.5);
+    };
+    el.addEventListener("mousemove", onMove);
+    return () => el.removeEventListener("mousemove", onMove);
+  }, [mx, my]);
+
+  return (
+    <section ref={wrap} className="relative overflow-hidden px-6 pb-24 pt-36 md:pt-48">
+      {/* Ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 left-1/2 size-[46rem] -translate-x-1/2 rounded-full bg-cyan-500/[0.08] blur-3xl"
+      />
+
+      <div className="relative mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-[1fr_1.05fr]">
+        {/* Left */}
         <div>
-          {/* Headline */}
+          <motion.span
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-xs text-zinc-400 backdrop-blur-xl"
+          >
+            <span className="size-1.5 rounded-full bg-cyan-400" />
+            Career intelligence, not career guesses
+          </motion.span>
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.2rem] font-black tracking-tighter leading-[1.05] mb-6"
+            transition={{ duration: 0.7, delay: 0.06, ease }}
+            className="mt-7 text-5xl font-semibold leading-[1.02] tracking-tighter text-white md:text-6xl lg:text-[4.25rem]"
           >
-            Learn What Companies{" "}
-            <span className="gradient-text">Actually Need.</span>
+            Learn what companies actually need.
           </motion.h1>
 
-          {/* Subhead */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-zinc-400 text-lg leading-relaxed max-w-xl mb-10"
+            transition={{ duration: 0.7, delay: 0.14, ease }}
+            className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400"
           >
-            Stop following random tutorials. Discover your optimal tech stack using verified
-            hiring data, local salary trends, and company requirements.
+            Stop following random tutorials. Discover your optimal technology stack using
+            verified hiring data, salary trends, and company requirements.
           </motion.p>
 
-          {/* Action Group */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
+            transition={{ duration: 0.7, delay: 0.22, ease }}
+            className="mt-10 flex flex-wrap items-center gap-3"
           >
             <MagneticButton
               onClick={onCtaClick}
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-colors"
+              className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-cyan-400 px-6 text-sm font-semibold text-black transition-shadow duration-300 hover:bg-cyan-300"
             >
-              Build My Career Path <ArrowRight className="w-4 h-4" />
+              Find my tech stack
+              <ArrowRight className="size-4" aria-hidden="true" />
             </MagneticButton>
             <button
               onClick={onExploreClick}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/[0.1] bg-white/[0.03] text-sm text-zinc-300 hover:bg-white/[0.06] hover:border-white/[0.15] transition-all"
+              className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/[0.08] px-6 text-sm font-medium text-zinc-400 transition-all duration-300 hover:border-white/20 hover:text-white"
             >
-              Explore Live Market Data <Search className="w-4 h-4" />
+              Explore market trends
             </button>
           </motion.div>
         </div>
 
-        {/* Right Column - Dashboard Widget */}
+        {/* Right — Hero visual */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="hidden lg:flex justify-center"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15, ease }}
+          style={{ rotateX: tiltX, rotateY: tiltY, transformPerspective: 1200 }}
+          className="relative"
         >
-          <HeroDashboard />
+          {/* Outer glass wrapper */}
+          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-3 shadow-2xl shadow-black/50 backdrop-blur-xl">
+            {/* Terminal */}
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0a0a0c]">
+              {/* Title bar */}
+              <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+                <span className="size-2 rounded-full bg-zinc-700" />
+                <span className="size-2 rounded-full bg-zinc-700" />
+                <span className="size-2 rounded-full bg-cyan-400/70" />
+                <span className="ml-3 text-[11px] text-zinc-500">
+                  stacksense.app / terminal — Berlin
+                </span>
+              </div>
+
+              <div className="space-y-4 p-5">
+                {/* Hiring Growth */}
+                <div className="rounded-xl border border-white/[0.06] bg-[#111113] p-4">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-zinc-500">
+                    <TrendingUp className="size-3.5 text-cyan-400" aria-hidden="true" />
+                    Hiring growth
+                  </div>
+                  <div className="mt-4 flex h-24 items-end gap-2">
+                    {bars.map((h, i) => (
+                      <motion.span
+                        key={i}
+                        initial={{ height: 4, opacity: 0.3 }}
+                        animate={{ height: `${h}%`, opacity: 1 }}
+                        transition={{ duration: 0.7, delay: 0.5 + i * 0.07, ease }}
+                        className="flex-1 rounded-t-sm bg-gradient-to-t from-cyan-500/25 to-cyan-400"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top Hiring Technologies */}
+                <div className="rounded-xl border border-white/[0.06] bg-[#111113] p-4">
+                  <p className="text-[11px] uppercase tracking-widest text-zinc-500">
+                    Top hiring technologies
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {techList.map((t, i) => (
+                      <div key={t.name}>
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-white">{t.name}</span>
+                          <span className="text-zinc-500">{t.roles} roles</span>
+                        </div>
+                        <div className="mt-1.5 h-1 rounded-full bg-white/[0.06]">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${t.demand}%` }}
+                            transition={{ duration: 0.9, delay: 0.6 + i * 0.1, ease }}
+                            className="h-full rounded-full bg-cyan-400"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating salary card with parallax */}
+          <motion.div
+            style={{ x: floatX, y: floatY }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1, ease }}
+            className="absolute -bottom-12 -left-10 hidden w-56 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-xl sm:block"
+          >
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-zinc-500">
+              <Wallet className="size-3.5 text-cyan-400" aria-hidden="true" />
+              Salary insights
+            </div>
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-white">€82,400</p>
+            <p className="mt-1 flex items-center gap-1 text-xs text-cyan-400">
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              +6.4% median, full-stack TS
+            </p>
+          </motion.div>
         </motion.div>
       </div>
     </section>

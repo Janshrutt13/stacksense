@@ -14,7 +14,6 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import ComparisonMatrix from "@/components/landing/ComparisonMatrix";
 import RoadmapPreview from "@/components/landing/RoadmapPreview";
 import StatsSection from "@/components/landing/StatsSection";
-import Testimonials from "@/components/landing/Testimonials";
 import FAQSection from "@/components/landing/FAQSection";
 import Footer from "@/components/landing/Footer";
 
@@ -67,12 +66,8 @@ export default function HomePage() {
       {/* I. Stats with animated counters */}
       <StatsSection />
 
-      {/* J. Testimonials */}
-      <Testimonials />
-
       {/* K. FAQ Accordion */}
       <FAQSection />
-
 
       {/* M. Minimal Footer */}
       <Footer />

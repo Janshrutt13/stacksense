@@ -17,7 +17,7 @@ const RoadmapSchema = z.object({
       resources: z.array(
         z.object({
           name: z.string().describe("Exact resource name, e.g. 'Fireship React in 100 Seconds'"),
-          type: z.enum(["YouTube", "Course", "Documentation", "Book", "Interactive"]),
+          type: z.enum(["YouTube", "Course", "Documentation", "Book", "Interactive", "Article"]),
           url: z.string().url().describe(
             "A real, direct https:// URL. No placeholders, no example.com, no shortened links. YouTube links must be youtube.com/watch?v=... format."
           ),
@@ -53,11 +53,11 @@ export async function generateCareerRoadmap(
     const { currentRole, currentTechStack, yearsOfExp, targetTechStack, targetRole, additionalInfo } = formData;
 
     const { object } = await generateObject({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-3.5-flash"),
       system: `You are a Principal Software Architect creating technical career transition roadmaps.
 RULES:
 - Every resource URL must be a real, direct, working https:// link.
-- Prefer YouTube tutorials (youtube.com/watch?v=...) and popular courses (udemy.com, frontendmasters.com, theodinproject.com, freecodecamp.org).
+- Provide a diverse mix of resources: YouTube tutorials, popular courses, official documentation, and high-quality online articles/blogs.
 - NEVER generate placeholder URLs, example.com links, or shortened URLs.
 - If you are not certain a URL is real, use the official documentation URL for that technology instead.`,
       prompt: `
@@ -72,7 +72,7 @@ Create a 4-phase technical career transition roadmap.
 Requirements:
 1. Bridge only the actual skill delta — skip what they already know from ${yearsOfExp} YoE.
 2. Output exactly 4 sequential phases.
-3. Each phase: 2-3 resources with real URLs (prefer YouTube first, then courses), time estimates, and one portfolio project idea.
+3. Each phase: 3-4 diverse resources with real URLs (mix of YouTube, courses, articles, docs), time estimates, and one portfolio project idea.
       `,
       schema: RoadmapSchema,
     });
