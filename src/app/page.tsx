@@ -10,6 +10,7 @@ import TickerBar from "@/components/landing/TickerBar";
 import MarketTicker from "@/components/landing/MarketTicker";
 import TrustSection from "@/components/landing/TrustSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
+import CareerSimulator from "@/components/landing/CareerSimulator";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ComparisonMatrix from "@/components/landing/ComparisonMatrix";
 import RoadmapPreview from "@/components/landing/RoadmapPreview";
@@ -53,6 +54,9 @@ export default function HomePage() {
 
       {/* E. Feature Bento Grid */}
       <FeatureGrid />
+
+      {/* NEW: Interactive Career Path Simulator ("What If?") */}
+      <CareerSimulator />
 
       {/* F. How It Works — Scroll-drawn path */}
       <HowItWorks />
