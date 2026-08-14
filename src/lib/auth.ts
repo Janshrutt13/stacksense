@@ -6,8 +6,6 @@ import { db } from "./db";
 // ─── Constants ────────────────────────────────────────────────────────────
 export const AUTH_COOKIE_NAME = "stacksense-session";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;

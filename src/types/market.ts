@@ -27,3 +27,19 @@ export interface CountryTrendPayload {
   topCities: CitySignal[];
   articleData: ArticleSignal[];
 }
+
+/** Alias used by the legacy getCountryMarketTrends orchestrator */
+export type TechDemand = TechSignal;
+
+/** Alias used by the legacy getCountryMarketTrends orchestrator */
+export type ArticleItem = ArticleSignal;
+
+/** Extended response that includes cache metadata */
+export interface CountryTrendResponse {
+  country: string;
+  topTechs: TechDemand[];
+  topCities: CitySignal[] | [];
+  articleData: ArticleItem[];
+  fromCache: boolean;
+  lastUpdated: Date;
+}

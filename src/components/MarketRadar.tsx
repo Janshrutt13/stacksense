@@ -35,8 +35,8 @@ export default function MarketRadar({ trends }: MarketRadarProps) {
         </p>
       )}
       {trends.map((trend) => {
-        const jobData = trend.jobData as ScrapedJob[];
-        const articles = trend.articleData as ScrapedArticle[];
+        const jobData = trend.jobData as unknown as ScrapedJob[];
+        const articles = trend.articleData as unknown as ScrapedArticle[];
 
         return (
           <motion.div

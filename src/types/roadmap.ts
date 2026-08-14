@@ -1,6 +1,6 @@
 export interface RecommendedResource {
   name: string;
-  type: "YouTube" | "Course" | "Documentation" | "Book" | "Interactive";
+  type: "YouTube" | "Course" | "Documentation" | "Book" | "Interactive" | "Article";
   url: string;
   estimatedTime: string;
   whyRecommended: string;

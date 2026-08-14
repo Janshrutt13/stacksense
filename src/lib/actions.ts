@@ -12,6 +12,6 @@ export {
   getCityTrends,
   fetchDevToArticles,
   scrapeJobSignalForTech,
-  EVALUATION_POOL,
 } from "@/lib/actions/market";
+export { EVALUATION_POOL } from "@/lib/actions/constants";
 

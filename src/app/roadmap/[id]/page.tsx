@@ -1,6 +1,5 @@
 "use client";
 
-import { db } from "@/lib/db";
 import { ArrowLeft, BookOpen, CheckCircle2, Circle, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

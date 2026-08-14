@@ -26,9 +26,9 @@ export async function getCountryTrends(
     console.log(`[market] Cache HIT for "${trimmed}"`);
     return {
       country: cached.country,
-      topTechs: cached.topTechs as TechSignal[],
-      topCities: cached.topCities as CitySignal[],
-      articleData: cached.articleData as ArticleSignal[],
+      topTechs: cached.topTechs as unknown as TechSignal[],
+      topCities: cached.topCities as unknown as CitySignal[],
+      articleData: cached.articleData as unknown as ArticleSignal[],
     };
   }
 
@@ -99,8 +99,8 @@ export async function getCountryTrends(
 
   await db.countryMarketTrend.upsert({
     where: { country: trimmed },
-    create: { country: canonicalName, topTechs, topCities, articleData },
-    update: { country: canonicalName, topTechs, topCities, articleData },
+    create: { country: canonicalName, topTechs: topTechs as any, topCities: topCities as any, articleData: articleData as any },
+    update: { country: canonicalName, topTechs: topTechs as any, topCities: topCities as any, articleData: articleData as any },
   });
 
   console.log(`[market] Upserted "${canonicalName}" — ${topTechs.length} techs, ${topCities.length} cities`);

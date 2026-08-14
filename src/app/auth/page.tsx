@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   loginSchema,
@@ -14,7 +14,7 @@ import {
   type LoginInput,
   type SignupInput,
 } from "@/lib/validations";
-import Link from "next/link";
+
 
 function Spinner() {
   return (

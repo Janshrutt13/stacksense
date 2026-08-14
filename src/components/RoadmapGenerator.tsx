@@ -5,14 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { generateObject } from "ai";
-import { google } from "@ai-sdk/google";
 import type { MarketTrend } from "@prisma/client";
 import type { ScrapedJob } from "@/lib/types";
 
 const experienceLevelSchema = z.enum(["beginner", "intermediate", "advanced"]);
 
-const roadmapSchema = z.object({
+const roadmapResultSchema = z.object({
   title: z.string(),
   description: z.string(),
   duration: z.string(),
@@ -33,7 +31,7 @@ const roadmapSchema = z.object({
   ),
 });
 
-type RoadmapType = z.infer<typeof roadmapSchema>;
+type RoadmapType = z.infer<typeof roadmapResultSchema>;
 
 interface RoadmapGeneratorProps {
   marketData: MarketTrend[];
@@ -55,18 +53,45 @@ export default function RoadmapGenerator({ marketData }: RoadmapGeneratorProps) 
     try {
       const marketContext = marketData
         .map((t) => {
-          const jobs = t.jobData as ScrapedJob[];
+          const jobs = t.jobData as unknown as ScrapedJob[];
           return `${t.location}: ${jobs.map((j) => `${j.tech} (${j.openings} openings, ${j.demandScore} demand)`).join(", ")}`;
         })
         .join("\n");
 
-      const { object } = await generateObject({
-        model: google("gemini-2.0-flash"),
-        schema: roadmapSchema,
-        prompt: `Create a comprehensive ${experienceLevel} level learning roadmap based on this market demand data:\n\n${marketContext}\n\nGenerate a structured roadmap with phases, topics, projects, and resources.`,
+      const topStack = marketData.length > 0
+        ? (marketData[0].jobData as unknown as ScrapedJob[])?.[0]?.tech || "React"
+        : "React";
+
+      const res = await fetch("/api/generate-roadmap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          experienceLevel,
+          currentSkills: [],
+          location: marketData.length > 0 ? marketData[0].location : "Remote",
+          targetStack: topStack,
+          marketContext,
+        }),
       });
 
-      setRoadmap(object);
+      if (res.ok) {
+        const data = await res.json();
+        // Map the API response to our display format
+        if (data.milestones) {
+          setRoadmap({
+            title: data.targetStack || topStack,
+            description: data.deltaAnalysis || `A ${experienceLevel} level roadmap`,
+            duration: `${data.estimatedWeeks || 12} weeks`,
+            phases: data.milestones.map((m: { title: string; weekRange: string; keyConcepts: string[]; projectIdea: string }) => ({
+              name: m.title,
+              duration: m.weekRange,
+              topics: m.keyConcepts || [],
+              projects: m.projectIdea ? [m.projectIdea] : [],
+            })),
+            resources: [],
+          });
+        }
+      }
     } catch (error) {
       console.error("Error generating roadmap:", error);
     } finally {
@@ -159,27 +184,29 @@ export default function RoadmapGenerator({ marketData }: RoadmapGeneratorProps) 
           </div>
 
           {/* Resources */}
-          <div className="space-y-3">
-            <h4 className="text-lg font-semibold text-slate-200">Resources</h4>
-            <div className="space-y-2">
-              {roadmap.resources.map((resource, idx) => (
-                <a
-                  key={idx}
-                  href={resource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block bg-slate-800/30 border border-slate-700/30 rounded-lg p-3 hover:border-blue-500/50 transition-colors"
-                >
-                  <p className="text-blue-400 hover:text-blue-300 font-medium">
-                    {resource.title}
-                  </p>
-                  <p className="text-xs text-slate-500 capitalize">
-                    {resource.type}
-                  </p>
-                </a>
-              ))}
+          {roadmap.resources.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-lg font-semibold text-slate-200">Resources</h4>
+              <div className="space-y-2">
+                {roadmap.resources.map((resource, idx) => (
+                  <a
+                    key={idx}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-slate-800/30 border border-slate-700/30 rounded-lg p-3 hover:border-blue-500/50 transition-colors"
+                  >
+                    <p className="text-blue-400 hover:text-blue-300 font-medium">
+                      {resource.title}
+                    </p>
+                    <p className="text-xs text-slate-500 capitalize">
+                      {resource.type}
+                    </p>
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
       )}
     </div>

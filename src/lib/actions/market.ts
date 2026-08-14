@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db";
 import { normalizeLocation } from "@/lib/utils";
-import { Prisma } from "@prisma/client";
 import type { MarketTrend } from "@prisma/client";
 import type { ScrapedJob, ScrapedArticle } from "@/lib/types";
 import { EVALUATION_POOL } from "./constants";
@@ -238,8 +237,8 @@ export async function getCityTrends(cityName: string): Promise<CityTrendsResult>
   // ── 4. Upsert into Neon ──────────────────────────────────────────────────
   const upserted = await db.marketTrend.upsert({
     where: { location: normalized },
-    create: { location: normalized, jobData: top5, articleData },
-    update: { jobData: top5, articleData },
+    create: { location: normalized, jobData: top5 as any, articleData: articleData as any },
+    update: { jobData: top5 as any, articleData: articleData as any },
   });
 
   console.log(
