@@ -3,22 +3,11 @@
 import { useState, useMemo, useRef, useEffect, useTransition } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
-  Sparkles,
   GitBranch,
-  TrendingUp,
   MapPin,
   Clock,
   Building2,
-  ShieldCheck,
-  ArrowRight,
-  Sliders,
-  Layers,
-  ArrowUpRight,
-  CheckCircle2,
   RotateCcw,
-  Compass,
-  Radio,
-  ExternalLink,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import MagneticButton from "./MagneticButton";
@@ -247,12 +236,11 @@ export default function CareerSimulator() {
           <div className="mt-10 inline-flex p-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/50">
             <button
               onClick={() => setActiveTab("simulator")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 ${activeTab === "simulator"
+              className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 ${activeTab === "simulator"
                 ? "bg-cyan-400 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
             >
-              <Sliders className="w-4 h-4" />
               What If? Simulator
             </button>
             <button
@@ -278,15 +266,13 @@ export default function CareerSimulator() {
               className="mb-8"
             >
               <div className="flex items-center justify-between mb-3 px-1">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                   Quick &quot;What If?&quot; Scenarios
                 </span>
                 <button
                   onClick={handleReset}
-                  className="text-xs font-medium text-zinc-500 hover:text-white flex items-center gap-1.5 transition-colors"
+                  className="text-xs font-medium text-zinc-500 hover:text-white transition-colors"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
                   Reset
                 </button>
               </div>
@@ -298,28 +284,17 @@ export default function CareerSimulator() {
                     <button
                       key={preset.id}
                       onClick={() => handleSelectPreset(preset.id)}
-                      className={`text-left p-3.5 rounded-2xl border transition-all duration-300 group relative overflow-hidden ${isSelected
-                        ? "bg-white/[0.04] border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.15)] ring-1 ring-cyan-400/30 scale-[1.02]"
-                        : "bg-[#0a0a0c] border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02] hover:scale-[1.01]"
+                      className={`text-left p-4 rounded-xl border transition-all duration-300 relative ${isSelected
+                        ? "bg-emerald-500/10 border-emerald-500/40 border-l-[3px] scale-[1.02]"
+                        : "bg-transparent border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02] hover:scale-[1.01]"
                         }`}
                     >
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 to-transparent pointer-events-none" />
-                      )}
-                      <div className="flex items-center justify-between mb-2 relative z-10">
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${isSelected
-                            ? "bg-cyan-400 text-black shadow-sm"
-                            : "bg-white/[0.04] text-zinc-400 group-hover:text-zinc-300 border border-white/[0.04]"
-                            }`}
-                        >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? "text-emerald-400" : "text-zinc-500"}`}>
                           {preset.badge}
                         </span>
-                        {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                        )}
                       </div>
-                      <p className={`text-xs font-medium leading-relaxed relative z-10 ${isSelected ? "text-white" : "text-zinc-400 group-hover:text-zinc-200"}`}>
+                      <p className={`text-xs font-medium leading-relaxed ${isSelected ? "text-white" : "text-zinc-400"}`}>
                         {preset.question}
                       </p>
                     </button>
@@ -341,22 +316,21 @@ export default function CareerSimulator() {
                 {/* Left Column: Skills & Stack */}
                 <div className="lg:col-span-5 space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">
                       1. Current Skills &amp; Stack
                     </label>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {AVAILABLE_SKILLS_POOL.map((skill) => {
                         const active = currentSkills.includes(skill);
                         return (
                           <button
                             key={skill}
                             onClick={() => toggleSkill(skill)}
-                            className={`px-3.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-300 ${active
-                              ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 shadow-[0_0_10px_rgba(34,211,238,0.1)]"
-                              : "bg-[#0a0a0c] text-zinc-400 border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02] hover:text-white"
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-300 ${active
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/40"
+                              : "bg-transparent text-zinc-400 border border-white/[0.06] hover:border-white/20 hover:text-white"
                               }`}
                           >
-                            {active && "✓ "}
                             {skill}
                           </button>
                         );
@@ -375,7 +349,7 @@ export default function CareerSimulator() {
                           setActivePresetId("");
                           setTargetRole(e.target.value);
                         }}
-                        className="w-full bg-[#0a0a0c] border border-white/[0.06] hover:border-white/20 rounded-xl px-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 transition-all appearance-none cursor-pointer"
+                        className="w-full bg-transparent border border-white/[0.06] hover:border-white/20 rounded-lg px-4 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 transition-all appearance-none cursor-pointer"
                         style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A1A1AA%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '0.65em auto' }}
                       >
                         {TARGET_ROLES.map((role) => (
@@ -396,7 +370,7 @@ export default function CareerSimulator() {
                           setActivePresetId("");
                           setLocation(e.target.value);
                         }}
-                        className="w-full bg-[#0a0a0c] border border-white/[0.06] hover:border-white/20 rounded-xl px-4 py-3 text-xs font-semibold text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 transition-all appearance-none cursor-pointer"
+                        className="w-full bg-transparent border border-white/[0.06] hover:border-white/20 rounded-lg px-4 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 transition-all appearance-none cursor-pointer"
                         style={{ backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A1A1AA%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '0.65em auto' }}
                       >
                         {POPULAR_LOCATIONS.map((loc) => (
@@ -412,10 +386,10 @@ export default function CareerSimulator() {
                 {/* Right Column: "What If I Learn...?" Selection */}
                 <div className="lg:col-span-7 space-y-5 lg:border-l lg:border-white/[0.06] lg:pl-6">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">
                       2. &quot;What If I Learn...?&quot; (Choose Technology)
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {CONSIDERING_TECHS.map((item) => {
                         const isSelected = consideringTech === item.name;
                         return (
@@ -425,24 +399,21 @@ export default function CareerSimulator() {
                               setActivePresetId("");
                               setConsideringTech(item.name);
                             }}
-                            className={`p-3 rounded-xl border text-left transition-all duration-300 relative overflow-hidden group ${isSelected
-                              ? "bg-cyan-400/10 border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.1)] ring-1 ring-cyan-400/20"
-                              : "bg-[#0a0a0c] border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02]"
+                            className={`p-4 rounded-xl border text-left transition-all duration-300 ${isSelected
+                              ? "bg-emerald-500/10 border-emerald-500/40"
+                              : "bg-transparent border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02]"
                               }`}
                           >
-                            {isSelected && (
-                              <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 to-transparent pointer-events-none" />
-                            )}
-                            <div className="flex items-center gap-2 mb-1.5 relative z-10">
-                              <span className="text-base group-hover:scale-110 transition-transform">{item.icon}</span>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-base grayscale opacity-70 group-hover:scale-110 transition-transform">{item.icon}</span>
                               <span
-                                className={`text-[11px] font-bold tracking-wide ${isSelected ? "text-cyan-300" : "text-zinc-200"
+                                className={`text-[11px] font-bold tracking-wide ${isSelected ? "text-emerald-400" : "text-zinc-300"
                                   }`}
                               >
                                 {item.name}
                               </span>
                             </div>
-                            <p className="text-[10px] text-zinc-500 leading-tight">
+                            <p className={`text-[10px] leading-tight ${isSelected ? "text-emerald-400/70" : "text-zinc-600"}`}>
                               {item.hint}
                             </p>
                           </button>
@@ -452,15 +423,12 @@ export default function CareerSimulator() {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-medium text-zinc-400">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                         Available Preparation Time
                       </label>
-                      <span className="text-xs font-bold text-cyan-400">
-                        {learningTimeMonths} Months
-                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {[3, 6, 12].map((months) => (
                         <button
                           key={months}
@@ -468,9 +436,9 @@ export default function CareerSimulator() {
                             setActivePresetId("");
                             setLearningTimeMonths(months);
                           }}
-                          className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all duration-300 ${learningTimeMonths === months
-                            ? "bg-cyan-400 text-black border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                            : "bg-[#0a0a0c] text-zinc-400 border-white/[0.06] hover:border-white/20 hover:bg-white/[0.02] hover:text-white"
+                          className={`flex-1 py-2.5 rounded-lg text-xs font-medium border transition-all duration-300 ${learningTimeMonths === months
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/40"
+                            : "bg-transparent text-zinc-400 border-white/[0.06] hover:border-white/20 hover:text-white"
                             }`}
                         >
                           {months} Months
@@ -492,77 +460,37 @@ export default function CareerSimulator() {
                 transition={{ duration: 0.4 }}
                 className="space-y-8"
               >
-                {/* Result Header Badge with Live Adzuna Status */}
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.02]">
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`size-2 rounded-full ${
-                        isPending
-                          ? "bg-amber-400 animate-spin"
-                          : isLive
-                          ? "bg-emerald-400 animate-pulse"
-                          : "bg-cyan-400 animate-pulse"
-                      }`}
-                    />
-                    <span className="text-xs md:text-sm text-zinc-300 font-medium">
-                      Simulated Transition:{" "}
-                      <span className="text-white font-bold">{currentStack}</span>
-                      {" → "}
-                      <span className="text-cyan-400 font-bold">
-                        {consideringTech}
-                      </span>{" "}
-                      in <span className="text-white font-bold">{location}</span>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isPending ? (
-                      <span className="text-[11px] font-medium text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20 flex items-center gap-1.5">
-                        <RotateCcw className="w-3 h-3 animate-spin" />
-                        Scraping Adzuna Live...
-                      </span>
-                    ) : isLive ? (
-                      <span className="text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                        ✓ Scraped from Adzuna Live
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-medium text-cyan-400 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/20">
-                        ✓ Verified Adzuna Telemetry
-                      </span>
-                    )}
-                  </div>
+                <div className="mb-4 text-sm font-medium tracking-tight text-zinc-400">
+                  Transitioning from <span className="text-white font-semibold">{currentStack}</span> to{" "}
+                  <span className="text-emerald-400 font-semibold">{consideringTech}</span> in{" "}
+                  <span className="text-white font-semibold">{location}</span>
                 </div>
 
                 {/* ── A. VISUAL INTERACTIVE CAREER PATH ──────────────────────── */}
-                <div className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/[0.02] to-transparent pointer-events-none" />
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
+                <div className="py-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-12">
                     <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-cyan-400" />
-                        Sequenced Career Progression Path
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">
+                        Sequenced Progression
                       </h3>
-                      <p className="text-xs text-zinc-400 mt-0.5">
-                        Dependency-ordered skill acquisition path to transition toward{" "}
-                        <span className="text-white font-semibold">{targetRole}</span>.
+                      <p className="text-xs text-zinc-400">
+                        Dependency-ordered path toward <span className="text-white font-medium">{targetRole}</span>
                       </p>
                     </div>
-                    <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-zinc-400 bg-[#18181b] px-3 py-1.5 rounded-xl border border-white/[0.06]">
-                      <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                      Total Duration: ~{learningTimeMonths} Months
+                    <span className="text-xs font-medium text-zinc-500">
+                      Total Duration: {learningTimeMonths} Months
                     </span>
                   </div>
 
-                  {/* Desktop Path Diagram */}
-                  <div className="relative mt-8">
-                    {/* Connecting line for desktop */}
-                    <div className="hidden md:block absolute top-[40%] left-4 right-4 h-0.5 bg-gradient-to-r from-white/[0.05] via-cyan-400/20 to-emerald-400/20 -z-10" />
+                  <div className="relative">
+                    {/* Thin connector line */}
+                    <div className="hidden md:block absolute top-[11px] left-[10%] right-[10%] h-px bg-white/[0.06] -z-10" />
                     
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-4 relative z-10">
                       {simulationResult.careerPath.map((step, idx) => {
                         const isConsidering = step.type === "considering";
                         const isTarget = step.type === "target";
-                        const isCurrent = step.type === "current";
+                        const isActive = isConsidering || isTarget;
 
                         return (
                           <motion.div
@@ -570,57 +498,37 @@ export default function CareerSimulator() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4, delay: idx * 0.1 }}
-                            className={`rounded-2xl p-5 border relative transition-all duration-300 hover:-translate-y-1 ${
-                              isConsidering
-                                ? "bg-cyan-950/30 border-cyan-400/40 shadow-[0_10px_30px_rgba(34,211,238,0.15)] ring-1 ring-cyan-400/20 backdrop-blur-md"
-                                : isTarget
-                                ? "bg-emerald-950/30 border-emerald-400/40 shadow-[0_10px_30px_rgba(52,211,153,0.1)] backdrop-blur-md"
-                                : isCurrent
-                                ? "bg-[#0a0a0c]/80 border-white/[0.1] backdrop-blur-md"
-                                : "bg-[#0a0a0c]/80 border-white/[0.06] backdrop-blur-md"
-                            }`}
+                            className="relative flex flex-col items-start group"
                           >
-                            <div className="flex items-center justify-between mb-3">
-                              <span
-                                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                                  isConsidering
-                                    ? "bg-cyan-400 text-black shadow-sm"
-                                    : isTarget
-                                    ? "bg-emerald-400 text-black shadow-sm"
-                                    : "bg-white/[0.06] text-zinc-300"
-                                }`}
-                              >
-                                Step 0{step.stepNumber}
-                              </span>
-                              <span className="text-[10px] font-mono font-medium text-zinc-400 bg-black/50 px-2 py-0.5 rounded">
+                            {/* Timeline Node */}
+                            <div className="hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 items-center justify-center bg-black">
+                              <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isActive ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]" : "bg-zinc-700 group-hover:bg-zinc-500"}`} />
+                            </div>
+
+                            <div className="w-full text-left mt-0 md:mt-12 relative overflow-visible">
+                              <div className="absolute -right-2 -top-12 md:-top-16 text-6xl md:text-7xl font-black text-white/[0.02] pointer-events-none select-none">
+                                {step.stepNumber}
+                              </div>
+                              <span className={`block text-[10px] font-medium mb-3 ${isActive ? "text-emerald-400" : "text-zinc-500"}`}>
                                 {step.duration}
                               </span>
+                              <h4 className={`text-sm font-semibold mb-3 ${isActive ? "text-white" : "text-zinc-300"}`}>
+                                {step.title}
+                              </h4>
+                              <div className="flex flex-wrap gap-1.5 mb-3">
+                                {step.techs.map((t) => (
+                                  <span
+                                    key={t}
+                                    className={`text-[10px] px-2 py-0.5 rounded font-medium ${isActive ? "text-emerald-300 bg-emerald-400/10" : "text-zinc-400 bg-white/[0.04]"}`}
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                              <p className={`text-[11px] leading-relaxed line-clamp-3 ${isActive ? "text-zinc-400" : "text-zinc-500"}`}>
+                                {step.description}
+                              </p>
                             </div>
-
-                            <h4 className="text-xs font-bold text-white mb-3 leading-snug">
-                              {step.title}
-                            </h4>
-
-                            <div className="flex flex-wrap gap-1.5 mb-4">
-                              {step.techs.map((t) => (
-                                <span
-                                  key={t}
-                                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
-                                    isConsidering 
-                                    ? "bg-cyan-400/10 border-cyan-400/20 text-cyan-300" 
-                                    : isTarget
-                                    ? "bg-emerald-400/10 border-emerald-400/20 text-emerald-300"
-                                    : "bg-white/[0.04] border-white/[0.08] text-zinc-300"
-                                  }`}
-                                >
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
-
-                            <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-3">
-                              {step.description}
-                            </p>
                           </motion.div>
                         );
                       })}
@@ -631,38 +539,29 @@ export default function CareerSimulator() {
                 {/* ── B. 4-COLUMN TELEMETRY GRID ─────────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Card 1: Verified Market Demand */}
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl shadow-xl p-5 hover:border-cyan-400/30 transition-colors duration-300">
-                    <div className="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+                  <div className="p-5">
+                    <div className="mb-6">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                         Market Demand
-                      </span>
-                      <span className="text-[10px] font-bold text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-full border border-cyan-400/20">
-                        Openings
                       </span>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {marketDemand.map((item) => (
                         <div key={item.tech} className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-semibold text-white">{item.tech}</p>
-                            <p className="text-[10px] text-zinc-500">
-                              {item.verifiedSource || "Adzuna Telemetry"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="block text-lg font-bold text-white tracking-tight">
+                          <span className="text-xs font-medium text-zinc-300">{item.tech}</span>
+                          <div className="text-right flex flex-col items-end">
+                            <span className="block text-sm font-semibold text-white tracking-tight">
                               {item.openings.toLocaleString()}
                             </span>
                             <span
-                              className={`block text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${
+                              className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest mt-1 ${
                                 item.demandLevel === "High"
                                   ? "text-emerald-400"
                                   : "text-amber-400"
                               }`}
                             >
-                              {item.demandLevel} Demand
+                              <span className="text-[6px]">●</span> {item.demandLevel}
                             </span>
                           </div>
                         </div>
@@ -671,35 +570,32 @@ export default function CareerSimulator() {
                   </div>
 
                   {/* Card 2: Location Demand */}
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl shadow-xl p-5 hover:border-emerald-400/30 transition-colors duration-300">
-                    <div className="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-6">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                        <MapPin className="w-3 h-3" />
                         {location}
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
-                        {locationDemand.overallLevel} Hub
                       </span>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {locationDemand.topTechsInLocation.map((item) => (
                         <div key={item.tech} className="flex items-center justify-between">
                           <span className="text-xs text-zinc-300 font-medium">
                             {item.tech}
                           </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-bold text-white tracking-tight">
+                          <div className="text-right flex flex-col items-end">
+                            <span className="block text-sm font-semibold text-white tracking-tight">
                               {item.openings.toLocaleString()}
                             </span>
                             <span
-                              className={`text-[9px] uppercase tracking-wider px-2 py-0.5 rounded font-bold border ${
+                              className={`flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest mt-1 ${
                                 item.level === "High"
-                                  ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
-                                  : "bg-amber-400/10 text-amber-400 border-amber-400/20"
+                                  ? "text-emerald-400"
+                                  : "text-amber-400"
                               }`}
                             >
-                              {item.level}
+                              <span className="text-[6px]">●</span> {item.level}
                             </span>
                           </div>
                         </div>
@@ -708,21 +604,17 @@ export default function CareerSimulator() {
                   </div>
 
                   {/* Card 3: Commonly Requested Skills */}
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl shadow-xl p-5">
-                    <div className="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                        Requested Skills
+                  <div className="p-5">
+                    <div className="mb-6">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        Related Keywords
                       </span>
                     </div>
-                    <p className="text-[11px] font-medium text-zinc-500 mb-4">
-                      Co-occurring keywords in live postings:
-                    </p>
                     <div className="flex flex-wrap gap-2">
                       {commonlyRequestedSkills.map((skill) => (
                         <span
                           key={skill}
-                          className="text-[11px] font-semibold px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-300 shadow-sm"
+                          className="text-[11px] font-medium text-zinc-400"
                         >
                           {skill}
                         </span>
@@ -731,58 +623,42 @@ export default function CareerSimulator() {
                   </div>
 
                   {/* Card 4: Related Roles & Top Companies */}
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-xl shadow-xl p-5">
-                    <div className="flex items-center justify-between mb-4 border-b border-white/[0.06] pb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-purple-400" />
+                  <div className="p-5">
+                    <div className="mb-6">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                         Hiring Ecosystem
                       </span>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-8">
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider mb-1">
-                          Matched Role Titles
+                        <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-3">
+                          Matched Roles
                         </p>
-                        <div className="space-y-1.5 mt-2">
+                        <div className="space-y-2">
                           {relatedRoles.map((role) => (
-                            <p key={role} className="text-xs text-zinc-300 font-medium flex items-center gap-2">
-                              <span className="w-1 h-1 rounded-full bg-purple-400/50" /> {role}
+                            <p key={role} className="text-xs text-zinc-300 font-medium">
+                              {role}
                             </p>
                           ))}
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-white/[0.06]">
-                        <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest mb-2">
+                      <div>
+                        <p className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-3">
                           Active Employers
                         </p>
-                        <p className="text-xs text-purple-400 font-semibold leading-relaxed">
-                          {topCompaniesHiring.join(" • ")}
+                        <p className="text-xs text-zinc-400 font-medium leading-relaxed">
+                          {topCompaniesHiring.join(", ")}
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* ── C. EVIDENCE & PROVENANCE CARD ──────────────────────────── */}
-                <div className="rounded-2xl border border-white/[0.06] bg-[#0c0c0e] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-400">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 shrink-0">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-zinc-200 font-semibold">
-                        {evidence.dataSource}
-                      </p>
-                      <p className="text-[11px] text-zinc-500">
-                        {evidence.sampleSize} • {evidence.lastUpdated}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-mono text-zinc-400 bg-[#18181b] px-3 py-1.5 rounded-xl border border-white/[0.06]">
-                    {evidence.verificationStatus}
-                  </span>
+                {/* ── C. EVIDENCE & PROVENANCE FOOTER ──────────────────────────── */}
+                <div className="pt-8 border-t border-white/[0.06] text-center text-[10px] text-zinc-500">
+                  {evidence.dataSource} • {evidence.sampleSize} • Last Updated: {evidence.lastUpdated}
                 </div>
               </motion.div>
             </AnimatePresence>
