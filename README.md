@@ -1,4 +1,4 @@
-# 🚀 StackSense
+#StackSense
 
 > **AI-powered career intelligence. Find the tech stack hiring in your city and get a personalized roadmap to land your next role.**
 
@@ -12,12 +12,12 @@ StackSense helps you navigate the ever-changing tech job market. Stop guessing w
 
 ## ✨ Key Features
 
-- 🎯 **Live Market Snapshot**: Real-time insights into which technologies are currently in demand based on your location.
-- 🗺️ **Personalized Roadmaps**: AI-generated, step-by-step learning paths tailored to your current skills and target role.
-- 🔮 **Interactive Career Simulator**: "What If?" scenarios to help you visualize different career paths and the required skills.
-- 📊 **Comparison Matrix**: See how different tech stacks compare in terms of salary, demand, and learning curve.
-- 🔒 **Secure Authentication**: Built-in secure authentication system to save your roadmaps and progress.
-- ⚡ **Cinematic & Responsive UI**: Beautiful, interactive interface with smooth animations and dark mode out-of-the-box.
+-  **Live Market Snapshot**: Real-time insights into which technologies are currently in demand based on your location.
+- **Personalized Roadmaps**: AI-generated, step-by-step learning paths tailored to your current skills and target role.
+- **Interactive Career Simulator**: "What If?" scenarios to help you visualize different career paths and the required skills.
+- **Comparison Matrix**: See how different tech stacks compare in terms of salary, demand, and learning curve.
+- **Secure Authentication**: Built-in secure authentication system to save your roadmaps and progress.
+- **Cinematic & Responsive UI**: Beautiful, interactive interface with smooth animations and dark mode out-of-the-box.
 
 ---
 
@@ -38,7 +38,7 @@ StackSense is built with modern web technologies:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -114,7 +114,7 @@ StackSense is built with modern web technologies:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 - `/src/app`: Next.js App Router pages and API routes.
 - `/src/components`: Reusable React components (Landing, UI, Forms).
