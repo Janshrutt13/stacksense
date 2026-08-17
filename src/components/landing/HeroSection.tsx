@@ -57,16 +57,6 @@ export default function HeroSection({
       <div className="relative mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-[1fr_1.05fr]">
         {/* Left */}
         <div>
-          <motion.span
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.02] px-4 py-1.5 text-xs text-zinc-400 backdrop-blur-xl"
-          >
-            <span className="size-1.5 rounded-full bg-cyan-400" />
-            Career intelligence, not career guesses
-          </motion.span>
-
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
