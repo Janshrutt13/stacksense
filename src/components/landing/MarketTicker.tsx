@@ -58,10 +58,14 @@ export default function MarketTicker() {
         // Extract top tech stacks from all regions
         const techStacks: Record<string, number> = {};
         trends.forEach((trend) => {
-          const jobData = trend.jobData as Record<string, number>;
-          Object.entries(jobData).forEach(([stack, count]) => {
-            techStacks[stack] = (techStacks[stack] || 0) + (count as number);
-          });
+          const jobData = trend.jobData as Array<{tech: string, openings: number}>;
+          if (Array.isArray(jobData)) {
+            jobData.forEach((job) => {
+              if (job && job.tech) {
+                techStacks[job.tech] = (techStacks[job.tech] || 0) + (job.openings || 0);
+              }
+            });
+          }
         });
 
         const colors = ["#06b6d4", "#3b82f6"];
