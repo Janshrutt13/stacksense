@@ -21,10 +21,6 @@ import Footer from "@/components/landing/Footer";
 export default function HomePage() {
   const router = useRouter();
 
-  function handleCtaClick() {
-    router.push("/auth");
-  }
-
   function handleExploreClick() {
     router.push("/explore");
   }
@@ -35,7 +31,7 @@ export default function HomePage() {
       <ScrollProgress />
 
       {/* Floating glass pill navbar */}
-      <Navbar onCtaClick={handleCtaClick} />
+      <Navbar />
 
       {/* A. Hero Section — Split cinematic layout */}
       <HeroSection

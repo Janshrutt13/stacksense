@@ -18,10 +18,6 @@ const FAQ_ITEMS = [
     a: "Our Skill Delta Engine calculates only the gap between your current stack and what the market demands. You'll never be told to learn something you already know. The roadmap adapts to your existing experience level.",
   },
   {
-    q: "Is StackSense free?",
-    a: "The market intelligence dashboard and basic demand data are free. Personalized roadmaps, skill delta analysis, and resume alignment features are available on our Pro plan. No credit card required to start.",
-  },
-  {
     q: "How often is the data updated?",
     a: "Market intelligence is refreshed on a weekly cadence. Major shifts in hiring trends are flagged within 48 hours. You'll always see the most current demand landscape for your target market.",
   },
